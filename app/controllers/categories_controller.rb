@@ -1,14 +1,15 @@
 class CategoriesController < ApplicationController
-  before_action :search_category
+  before_action :find_category
   
   def index
     ideas_list = []
 
-    if @categories.present?
-      @categories.first.ideas.each do |idea|
-        ideas_list.push({id: idea.id, category: @categories.first.name, body: idea.body})
+    if @category.present?
+      ideas = Idea.where(category_id: @category.id)
+      ideas.each do |idea|
+        ideas_list.push({id: idea.id, category: @category.name, body: idea.body})
       end
-    elsif !@categories.present? && params[:name].present?
+    elsif !@category.present? && params[:name].present?
     else
       Idea.all.each do |idea|
         ideas_list.push({id: idea.id, category: idea.category.name, body: idea.body})
@@ -19,29 +20,35 @@ class CategoriesController < ApplicationController
   end
 
   def create
-    if @categories.present?
-      if idea = Idea.create(body: params[:body], category_id: @categories.ids.first)
+    if @category.present?
+      idea = Idea.new(body: params[:body], category_id: @category.id)
+      if idea.save
         render json: { status: 201, action: action_name, data: idea }
       else
         render json: { status: 422, action: action_name, data: idea.errors }
       end
     else
-      if category_idea_params
-        render json: { status: 201, action: action_name, data: @idea }
+      @create_category = Category.new(category_params)
+      idea = Idea.new(idea_params)
+      if idea.save && @create_category.save
+        render json: { status: 201, action: action_name, data: idea }
       else
-        render json: { status: 422, action: action_name, data: [@idea.errors, @category.errors] }
+        render json: { status: 422, action: action_name, data: [@create_category.errors, idea.errors] }
       end
     end
   end
 
   private
-  def search_category
-    @categories = Category.where(name: params[:name])
+  def find_category
+    @category = Category.find_by(name: params[:name])
   end
 
-  def category_idea_params
-    @category = Category.create(name: params[:name])
-    @idea = Idea.create(body: params[:body], category_id: @category.id)
+  def category_params
+    params.permit(:name)
+  end
+
+  def idea_params
+    params.permit(:body).merge(category_id: @create_category.id)
   end
 
 end
