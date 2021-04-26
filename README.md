@@ -1,6 +1,16 @@
+### データベース
+MySQL
+
+### ソース管理
+GitHub,GitHubDesktop
+
+### テスト
+RSpec
+
+### エディタ
+VSCode
+
 # DB設計
-
-
 
 ## ideasテーブル
 
@@ -12,8 +22,6 @@
 ### Association
 
 - belongs_to :category
-
-
 
 ## categoriesテーブル
 
