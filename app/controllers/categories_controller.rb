@@ -9,32 +9,35 @@ class CategoriesController < ApplicationController
       ideas.each do |idea|
         ideas_list.push({id: idea.id, category: @category.name, body: idea.body})
       end
-    elsif !@category.present? && params[:name].present?
+      render json: { data: ideas_list }
+    elsif params[:name].present?
+      render json: { status: 404 }
     else
       Idea.all.each do |idea|
         ideas_list.push({id: idea.id, category: idea.category.name, body: idea.body})
       end
+      render json: { data: ideas_list }
     end
-
-    render json: { data: ideas_list }
   end
 
   def create
     if @category.present?
       idea = Idea.new(body: params[:body], category_id: @category.id)
       if idea.save
-        render json: { status: 201, action: action_name, data: idea }
+        render json: { status: 201 }
       else
-        render json: { status: 422, action: action_name, data: idea.errors }
+        render json: { status: 422 }
+      end
+    elsif params[:name].present? && params[:body].present?
+      @create_category = Category.create(category_params)
+      idea = Idea.create(idea_params)
+      if @create_category.save && idea.save
+        render json: { status: 201 }
+      else
+        render json: { status: 422 }
       end
     else
-      @create_category = Category.new(category_params)
-      idea = Idea.new(idea_params)
-      if idea.save && @create_category.save
-        render json: { status: 201, action: action_name, data: idea }
-      else
-        render json: { status: 422, action: action_name, data: [@create_category.errors, idea.errors] }
-      end
+      render json: { status: 422 }
     end
   end
 
