@@ -31,7 +31,7 @@ class CategoriesController < ApplicationController
     elsif params[:name].present? && params[:body].present?
       @create_category = Category.create(category_params)
       idea = Idea.create(idea_params)
-      if @create_category.save && idea.save
+      if @create_category && idea
         render json: { status: 201 }
       else
         render json: { status: 422 }
